@@ -1,0 +1,17 @@
+{
+  "pages": {},
+  "app": {
+    "[project]/app/admin/enquiries/page": [
+      "static/media/d54d3ac46006a511-s.p.d8ac9136.woff2",
+      "static/media/b46d18a8cf14d635-s.p.19e8f7c1.woff2",
+      "static/media/6f37b3f37e933dab-s.p.5a1e073e.woff2",
+      "static/media/ad082e69de6c0b64-s.p.cbf26e01.woff2",
+      "static/media/64f6ac7f4c7cae70-s.p.2da9b520.woff2",
+      "static/media/1e3836d53109c674-s.p.4904d64f.woff2",
+      "static/media/9e9e9843d24e031d-s.p.da7dee9f.woff2",
+      "static/media/cab5da74f1470703-s.p.7f07663b.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pagesUsingSizeAdjust": false
+}

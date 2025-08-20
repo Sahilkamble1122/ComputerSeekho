@@ -1,0 +1,19 @@
+# Template Dockerfile for all microservices
+# Copy this file to each service directory and rename to Dockerfile
+
+FROM openjdk:11-jre-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy the JAR file
+COPY target/*.jar app.jar
+
+# Expose the port (update for each service)
+EXPOSE 8081
+
+# Set JVM options
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
