@@ -1,0 +1,17 @@
+{
+  "enquirerName": "John Doe",
+  "enquirerAddress": "123 Main Street, City, State 12345",
+  "enquirerMobile": 9876543210,
+  "enquirerAlternateMobile": 9876543211,
+  "enquirerEmailId": "john.doe@example.com",
+  "enquiryDate": "2024-01-15",
+  "enquirerQuery": "I am interested in learning about your Java programming course",
+  "closureReasonId": null,
+  "closureReason": null,
+  "enquiryProcessedFlag": false,
+  "courseId": 1,
+  "assignedStaffId": 1,
+  "studentName": "John Doe",
+  "enquiryCounter": 0,
+  "followUpDate": "2024-01-20"
+}

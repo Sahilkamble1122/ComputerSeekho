@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Duplicate Removal Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.danger {
+            background-color: #dc3545;
+        }
+        button.danger:hover {
+            background-color: #c82333;
+        }
+        button.success {
+            background-color: #28a745;
+        }
+        button.success:hover {
+            background-color: #218838;
+        }
+        .result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .loading {
+            color: #007bff;
+            font-style: italic;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Course Duplicate Removal Test</h1>
+    
+    <div class="info">
+        <strong>Note:</strong> This page allows you to test the duplicate detection and removal functionality for courses. 
+        Make sure your Spring Boot application is running on <code>http://localhost:8080</code> before testing.
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h3>1. Duplicate Detection</h3>
+            <p>Check for duplicates without removing them:</p>
+            <button onclick="checkDuplicatesByName()">Check Duplicates by Name</button>
+            <button onclick="checkDuplicatesByNameAndDescription()">Check Duplicates by Name & Description</button>
+            <button onclick="checkDuplicatesByNameDescriptionAndDuration()">Check Duplicates by Name, Description & Duration</button>
+            <button onclick="checkExactDuplicates()">Check Exact Duplicates</button>
+            <button onclick="countDuplicatesByName()">Count Duplicates by Name</button>
+            <button onclick="countDuplicatesByNameAndDescription()">Count Duplicates by Name & Description</button>
+            <div id="detectionResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="section">
+            <h3>2. Duplicate Removal</h3>
+            <p>Remove duplicates (this will permanently delete data):</p>
+            <button class="danger" onclick="removeDuplicatesByName()">Remove Duplicates by Name</button>
+            <button class="danger" onclick="removeDuplicatesByNameAndDescription()">Remove Duplicates by Name & Description</button>
+            <button class="danger" onclick="removeDuplicatesByNameDescriptionAndDuration()">Remove Duplicates by Name, Description & Duration</button>
+            <button class="danger" onclick="removeAllDuplicates()">Remove All Duplicates</button>
+            <div id="removalResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="section">
+            <h3>3. Find and Remove in One Operation</h3>
+            <p>Find duplicates and remove them, returning the list of removed courses:</p>
+            <button class="success" onclick="findAndRemoveDuplicatesByName()">Find & Remove by Name</button>
+            <button class="success" onclick="findAndRemoveDuplicatesByNameAndDescription()">Find & Remove by Name & Description</button>
+            <button class="success" onclick="findAndRemoveDuplicatesByNameDescriptionAndDuration()">Find & Remove by Name, Description & Duration</button>
+            <button class="success" onclick="findAndRemoveAllDuplicates()">Find & Remove All Duplicates</button>
+            <div id="findAndRemoveResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="section">
+            <h3>4. View All Courses</h3>
+            <p>View all courses to see the current state:</p>
+            <button onclick="getAllCourses()">Get All Courses</button>
+            <div id="allCoursesResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8080/api/courses';
+
+        function showResult(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = isError ? 'result error' : 'result';
+            element.textContent = content;
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'result loading';
+            element.textContent = 'Loading...';
+        }
+
+        async function makeRequest(url, method = 'GET') {
+            try {
+                const response = await fetch(url, { method });
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    return { success: response.ok, data, status: response.status };
+                } else {
+                    return { success: response.ok, data: null, status: response.status };
+                }
+            } catch (error) {
+                return { success: false, data: error.message, status: 0 };
+            }
+        }
+
+        // Detection functions
+        async function checkDuplicatesByName() {
+            showLoading('detectionResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/name`);
+            if (result.success) {
+                showResult('detectionResult', `Duplicates by Name:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('detectionResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function checkDuplicatesByNameAndDescription() {
+            showLoading('detectionResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/name-description`);
+            if (result.success) {
+                showResult('detectionResult', `Duplicates by Name & Description:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('detectionResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function checkDuplicatesByNameDescriptionAndDuration() {
+            showLoading('detectionResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/name-description-duration`);
+            if (result.success) {
+                showResult('detectionResult', `Duplicates by Name, Description & Duration:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('detectionResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function checkExactDuplicates() {
+            showLoading('detectionResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/exact`);
+            if (result.success) {
+                showResult('detectionResult', `Exact Duplicates:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('detectionResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function countDuplicatesByName() {
+            showLoading('detectionResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/count/name`);
+            if (result.success) {
+                showResult('detectionResult', `Count of Duplicates by Name: ${result.data}`);
+            } else {
+                showResult('detectionResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function countDuplicatesByNameAndDescription() {
+            showLoading('detectionResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/count/name-description`);
+            if (result.success) {
+                showResult('detectionResult', `Count of Duplicates by Name & Description: ${result.data}`);
+            } else {
+                showResult('detectionResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        // Removal functions
+        async function removeDuplicatesByName() {
+            if (!confirm('Are you sure you want to remove duplicate courses by name? This action cannot be undone.')) {
+                return;
+            }
+            showLoading('removalResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/name`, 'DELETE');
+            if (result.success) {
+                showResult('removalResult', 'Duplicates by name removed successfully!');
+            } else {
+                showResult('removalResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function removeDuplicatesByNameAndDescription() {
+            if (!confirm('Are you sure you want to remove duplicate courses by name and description? This action cannot be undone.')) {
+                return;
+            }
+            showLoading('removalResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/name-description`, 'DELETE');
+            if (result.success) {
+                showResult('removalResult', 'Duplicates by name and description removed successfully!');
+            } else {
+                showResult('removalResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function removeDuplicatesByNameDescriptionAndDuration() {
+            if (!confirm('Are you sure you want to remove duplicate courses by name, description and duration? This action cannot be undone.')) {
+                return;
+            }
+            showLoading('removalResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/name-description-duration`, 'DELETE');
+            if (result.success) {
+                showResult('removalResult', 'Duplicates by name, description and duration removed successfully!');
+            } else {
+                showResult('removalResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function removeAllDuplicates() {
+            if (!confirm('Are you sure you want to remove ALL duplicate courses? This action cannot be undone.')) {
+                return;
+            }
+            showLoading('removalResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/all`, 'DELETE');
+            if (result.success) {
+                showResult('removalResult', 'All duplicates removed successfully!');
+            } else {
+                showResult('removalResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        // Find and Remove functions
+        async function findAndRemoveDuplicatesByName() {
+            if (!confirm('Are you sure you want to find and remove duplicate courses by name? This action cannot be undone.')) {
+                return;
+            }
+            showLoading('findAndRemoveResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/find-and-remove/name`, 'DELETE');
+            if (result.success) {
+                showResult('findAndRemoveResult', `Removed Duplicates by Name:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('findAndRemoveResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function findAndRemoveDuplicatesByNameAndDescription() {
+            if (!confirm('Are you sure you want to find and remove duplicate courses by name and description? This action cannot be undone.')) {
+                return;
+            }
+            showLoading('findAndRemoveResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/find-and-remove/name-description`, 'DELETE');
+            if (result.success) {
+                showResult('findAndRemoveResult', `Removed Duplicates by Name & Description:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('findAndRemoveResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function findAndRemoveDuplicatesByNameDescriptionAndDuration() {
+            if (!confirm('Are you sure you want to find and remove duplicate courses by name, description and duration? This action cannot be undone.')) {
+                return;
+            }
+            showLoading('findAndRemoveResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/find-and-remove/name-description-duration`, 'DELETE');
+            if (result.success) {
+                showResult('findAndRemoveResult', `Removed Duplicates by Name, Description & Duration:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('findAndRemoveResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        async function findAndRemoveAllDuplicates() {
+            if (!confirm('Are you sure you want to find and remove ALL duplicate courses? This action cannot be undone.')) {
+                return;
+            }
+            showLoading('findAndRemoveResult');
+            const result = await makeRequest(`${BASE_URL}/duplicates/find-and-remove/all`, 'DELETE');
+            if (result.success) {
+                showResult('findAndRemoveResult', `Removed All Duplicates:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('findAndRemoveResult', `Error: ${result.data}`, true);
+            }
+        }
+
+        // View all courses
+        async function getAllCourses() {
+            showLoading('allCoursesResult');
+            const result = await makeRequest(`${BASE_URL}`);
+            if (result.success) {
+                showResult('allCoursesResult', `All Courses:\n${JSON.stringify(result.data, null, 2)}`);
+            } else {
+                showResult('allCoursesResult', `Error: ${result.data}`, true);
+            }
+        }
+    </script>
+</body>
+</html>
+

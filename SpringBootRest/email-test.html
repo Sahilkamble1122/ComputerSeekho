@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Test - ComputerSeekho</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .simple-test {
+            background-color: #28a745;
+        }
+        .simple-test:hover {
+            background-color: #1e7e34;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Email Test - ComputerSeekho</h1>
+        
+        <div class="form-group">
+            <label for="toEmail">To Email:</label>
+            <input type="email" id="toEmail" placeholder="Enter recipient email address">
+        </div>
+        
+        <div class="form-group">
+            <label for="subject">Subject:</label>
+            <input type="text" id="subject" placeholder="Enter email subject">
+        </div>
+        
+        <div class="form-group">
+            <label for="message">Message:</label>
+            <textarea id="message" placeholder="Enter your message"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <button onclick="sendTestEmail()">Send Test Email</button>
+            <button class="simple-test" onclick="sendSimpleTest()">Send Simple Test</button>
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        async function sendTestEmail() {
+            const toEmail = document.getElementById('toEmail').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!toEmail) {
+                showResult('Please enter a recipient email address.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/email/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        to: toEmail,
+                        subject: subject || 'Test Email from ComputerSeekho',
+                        message: message || 'This is a test email to verify email functionality.'
+                    })
+                });
+                
+                const result = await response.text();
+                
+                if (response.ok) {
+                    showResult(result, 'success');
+                } else {
+                    showResult('Error: ' + result, 'error');
+                }
+            } catch (error) {
+                showResult('Network error: ' + error.message, 'error');
+            }
+        }
+        
+        async function sendSimpleTest() {
+            try {
+                const response = await fetch('/api/email/simple-test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.text();
+                
+                if (response.ok) {
+                    showResult(result, 'success');
+                } else {
+                    showResult('Error: ' + result, 'error');
+                }
+            } catch (error) {
+                showResult('Network error: ' + error.message, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
